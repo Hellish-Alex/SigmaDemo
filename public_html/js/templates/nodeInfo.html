@@ -1,0 +1,49 @@
+<ul>
+    <li>
+        <img class="photo" src="<%= node.attributes.photo_200 %>" alt="<%= node.attributes.name %>">
+    </li>
+    <li>
+        <label>Name:</label>
+        <span><%= node.attributes.name %></span>
+    </li>
+    <li>
+        <label>Id:</label>
+        <span><%= node.attributes.id %></span>
+    </li>
+    <li>
+        <label>Alias:</label>
+        <span><a href="http://vk.com/<%= node.attributes.screen_name %>"><%= node.attributes.screen_name %></a></span>
+    </li>
+    <li>
+        <label>Users:</label>
+        <span><%= node.attributes.nusers %></span>
+    </li>
+    <li>
+        <label>Cluster:</label>
+        <span class="cluster"><%= node.attributes.cluster %></span>
+    </li>
+</ul>
+
+<table id="neighborsTable"  class="display" cellspacing="0" width="100%">
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Users</th>
+            </tr>
+        </thead>
+        <tbody>
+            <% _.each(neighbors, function(neighborNode) { %> 
+                <tr>
+                    <td><%= neighborNode.attributes.name %></td>
+                    <td><%= neighborNode.attributes.nusers %></td>
+                </tr>         
+            <% }); %>        
+        </tbody>
+</table>
+<script>
+    $('#neighborsTable').DataTable( {
+        "searching": false,
+        "bPaginate": false
+    } );
+</script>
+

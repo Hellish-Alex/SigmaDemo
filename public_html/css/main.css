@@ -1,0 +1,55 @@
+#container {
+    background: #EEE;
+    position: fixed;
+    left: 0;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    z-index: 1;
+}
+
+#nodeInfo {
+    position: fixed;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    width: 400px;
+    background: #FFF;
+    border-left: 1px solid #acacac;
+    z-index: 10;
+    transition: width 0.5s ;
+}
+
+#nodeInfo.closed {
+    width: 0;
+}
+
+#nodeInfo .body {
+    height: 100%;
+    overflow: scroll;
+}
+
+#nodeInfo .body ul {
+    list-style-type: none;
+}
+
+#nodeInfo .body .photo {
+    width: 200px;
+    height: 200px;
+}
+         
+.closed .closeButton {
+    display: none;
+}
+
+#nodeInfo .closeButton {
+    position: absolute;
+    top: 0;
+    background-image: url('../img/fancybox_sprite.png');
+    background-repeat: no-repeat;
+    cursor: pointer; 
+    width: 36px;
+    height: 36px;
+    margin-left: -18px;
+    z-index: 10;
+}

@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+
+<html>
+    <head>
+        <link rel="stylesheet" href="css/main.css" type="text/css"/>
+        <link rel="stylesheet" href="js/libs/datatables/jquery.dataTables.min.css" type="text/css"/>
+        <title>VkGraph</title>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    </head>
+    <body>
+        <div id="container"></div>
+        <div id="nodeInfo" class="closed">
+            <div class="closeButton"></div> 
+            <div class="body"></div>
+        </div>
+
+        <script src="js/libs/jquery/jquery.js"></script>
+        <script src="js/libs/datatables/jquery.dataTables.js"></script>
+        <script src="js/libs/require.js/require.js"></script>
+        <script src="js/libs/sigma.js/sigma.min.js"></script>
+        <script src="js/libs/tinycolor/tinycolor.js"></script>
+        <script src="js/libs/underscore.js/underscore-min.js"></script>
+        <script>
+            require.config({
+                waitSeconds: 2,
+                baseUrl: 'js/',
+                paths: {
+                    text: 'libs/require-text/text',
+                    json: 'libs/require-json/json'
+                }
+            });
+
+
+            require(["json!data_new.json", 'text!templates/nodeInfo.html', 'tinycolor', 'underscore'], function (data, nodeInfoTemplate, tinycolor, _) {
+                _.each(data.nodes, function(node) {
+                    node.y = (-1) * node.y;
+                });
+                
+        
+                sigma.canvas.hovers.def = function (node, context, settings) {
+                    var fontSize,
+                            prefix = settings('prefix') || '',
+                            size = node[prefix + 'size'];
+                    
+                    if (size < settings('labelThreshold'))
+                        return;
+
+                    if (!node.attributes.name || typeof node.attributes.name !== 'string')
+                        return;
+
+                    var labelText = node.attributes.name;
+
+                    fontSize = (settings('labelSize') === 'fixed') ?
+                            settings('defaultLabelSize') :
+                            settings('labelSizeRatio') * size;
+
+                    context.textAlign = "center";
+                    context.textBaseline = "middle";
+                    context.font = (settings('fontStyle') ? settings('fontStyle') + ' ' : '') +
+                            fontSize + 'px ' + settings('font');
+
+                    context.fillStyle = node.color || settings('defaultNodeColor');
+
+                    var textSize = context.measureText(labelText);
+                    context.fillRect(
+                            node[prefix + 'x'] - textSize.width / 2,
+                            node[prefix + 'y'] - fontSize / 2,
+                            textSize.width,
+                            fontSize
+                            );
+
+                    context.fillStyle = (settings('labelColor') === 'node') ?
+                            (node.color || settings('defaultNodeColor')) :
+                            settings('defaultLabelColor');
+
+                    context.fillText(
+                            labelText,
+                            Math.round(node[prefix + 'x']),
+                            Math.round(node[prefix + 'y'])
+                            );
+                };
+
+                sigma.canvas.edges.def = function (edge, source, target, context, settings) {
+                    var color = edge.color,
+                            prefix = settings('prefix') || '',
+                            edgeColor = settings('edgeColor'),
+                            defaultNodeColor = settings('defaultNodeColor'),
+                            defaultEdgeColor = settings('defaultEdgeColor');
+
+                    if (!color)
+                        switch (edgeColor) {
+                            case 'source':
+                                color = source.color || defaultNodeColor;
+                                break;
+                            case 'target':
+                                color = target.color || defaultNodeColor;
+                                break;
+                            default:
+                                color = defaultEdgeColor;
+                                break;
+                        }
+
+                    context.strokeStyle = color;
+//                    context.lineWidth = edge[prefix + 'size'] || 1;
+                    context.lineWidth = 0.3;
+                    context.beginPath();
+                    context.moveTo(
+                            source[prefix + 'x'],
+                            source[prefix + 'y']
+                            );
+                    context.quadraticCurveTo(
+                            (source[prefix + 'x'] + target[prefix + 'x']) / 2 +
+                            (target[prefix + 'y'] - source[prefix + 'y']) / 4,
+                            (source[prefix + 'y'] + target[prefix + 'y']) / 2 +
+                            (source[prefix + 'x'] - target[prefix + 'x']) / 4,
+                            target[prefix + 'x'],
+                            target[prefix + 'y']
+                            );
+                    context.stroke();
+                };
+                
+                sigma.canvas.nodes.def = function(node, context, settings) {     
+                    var prefix = settings('prefix') || '';
+
+                    context.fillStyle = node.color || settings('defaultNodeColor');
+                    context.beginPath();
+                    context.arc(
+                      node[prefix + 'x'],
+                      node[prefix + 'y'] ,
+                      node[prefix + 'size'],
+                      0,
+                      Math.PI * 2,
+                      true
+                    );
+
+                    context.closePath();
+                    context.fill();
+                 };
+
+                sigma.canvas.labels.def = function (node, context, settings) {
+                    var fontSize,
+                            prefix = settings('prefix') || '',
+                            size = node[prefix + 'size'];
+
+                    if (size < settings('labelThreshold'))
+                        return;
+
+                    if (!node.attributes.name || typeof node.attributes.name !== 'string')
+                        return;
+
+                    var labelText = node.attributes.name;
+                    
+                    if(labelText.length > 12) {
+                        labelText = labelText.substring(0, 12) + '...';
+                    }
+
+                    fontSize = (settings('labelSize') === 'fixed') ?
+                            settings('defaultLabelSize') :
+                            settings('labelSizeRatio') * size;
+                    
+                   
+
+                    context.textAlign = "center";
+                    context.textBaseline = "middle";
+                    context.font = (settings('fontStyle') ? settings('fontStyle') + ' ' : '') +
+                            fontSize + 'px ' + settings('font');
+
+                    context.fillStyle = node.color || settings('defaultNodeColor');
+
+                    var textSize = context.measureText(labelText);
+                    context.fillRect(
+                            node[prefix + 'x'] - textSize.width / 2 - 4,
+                            node[prefix + 'y'] - fontSize / 2 - 4,
+                            textSize.width + 8,
+                            fontSize + 8
+                            );
+
+                    context.fillStyle = (settings('labelColor') === 'node') ?
+                            (node.color || settings('defaultNodeColor')) :
+                            settings('defaultLabelColor');
+
+                    context.fillText(
+                            labelText,
+                            Math.round(node[prefix + 'x']),
+                            Math.round(node[prefix + 'y'])
+                            );
+                };
+                
+                s = new sigma({
+                    graph: data,
+                    renderer: {
+                        container: document.getElementById('container'),
+                        type: 'canvas'
+                    },
+                    settings: {
+                        labelThreshold: 12,
+                        defaultLabelSize: 10,
+                        autoRescale: false,
+                        nodesPowRatio: 1,
+                        edgesPowRatio: 1,
+                        zoomMax: 20
+//                        labelSize: 'proportional'
+                    }
+                });
+                
+                
+                //Fucking hack
+                s.camera.ratio = 20;
+                s.refresh();
+                
+                var showNodeInfo = function(data) {
+                    $('#nodeInfo').removeClass('closed');
+                    var nodes = s.graph.nodes();
+                    $('#nodeInfo .body').html(_.template(nodeInfoTemplate)({
+                        'node': data,
+                        'neighbors': _.map(_.map(_.filter(s.graph.edges(), function(edge) {
+                            return (edge.source  === data.id) || (edge.target === data.id);
+                        }), function(edge) {
+                            return (edge.source  === data.id) ? edge.target : edge.source;
+                        }), function(id) {
+                            return _.find(nodes, function(node) {
+                                return node.id === id;
+                            });
+                        })
+                    }));
+                };
+                
+                var showNeighbors = function(id) {
+                    
+                    var nodeIds = _.map(_.filter(s.graph.edges(), function(edge) {
+                        return (edge.source  === id) || 
+                                (edge.target === id);
+                    }), function(edge) {
+                        if(edge.source  === id) {
+                            return edge.target;
+                        } else {
+                            return edge.source;
+                        }
+                    });
+                    
+                    _.each(s.graph.nodes(), function(n) {
+                        n.hidden = (n.id !== id) && !_.contains(nodeIds, n.id);
+                    });
+                    s.refresh();
+                };
+                
+                var showCluster = function(clusterId) {
+                    _.each(s.graph.nodes(), function(n) {
+                        n.hidden = n.attributes.cluster !== clusterId;
+                    });
+                    s.refresh();
+                };
+                
+                var showAll = function() {
+                    _.each(s.graph.nodes(), function(n) {
+                        n.hidden = false;
+                    });
+                    s.refresh();
+                };
+                // Bind the events:
+                s.bind('clickNode', function(e) {
+                    showNodeInfo(e.data.node);
+                    showNeighbors(e.data.node.id);
+                    
+                });
+                
+                $('.closeButton').on('click', function(e) {
+                    $('#nodeInfo').addClass('closed');
+                    showAll();
+                });
+
+            });
+        </script>
+    </body>
+</html>
